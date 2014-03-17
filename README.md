@@ -10,11 +10,16 @@ Example Usage:
     )
 
     func main() {
-        splunk := splunk.SplunkConnection {"admin", "changeme", "https://localhost:8089"}
-        key, err:= splunk.Login()
+        conn := splunk.SplunkConnection {
+                Username: "admin",
+                Password: "changeme",
+                BaseURL: "https://localhost:8089",
+        }
+
+        key, err:= conn.Login()
 
         if err != nil {
-            fmt.Println("Couldn't login to splunk: %s", err)
+                fmt.Println("Couldn't login to splunk: %s", err)
         }
 
         fmt.Println("Session key: ", key.Value)
