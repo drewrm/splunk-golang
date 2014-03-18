@@ -2,21 +2,8 @@ package splunk
 
 import (
         "fmt"
-        "bytes"
-        "encoding/json"
-        "net/http"
-        "io/ioutil"
         "net/url"
-        "crypto/tls"
-)
-
-
-type MessageSeverity string
-
-const (
-        Info MessageSeverity = "info"
-        Warn MessageSeverity = "warn"
-        Error MessageSeverity = "error"
+        "encoding/json"
 )
 
 type SplunkConnection struct {
@@ -50,41 +37,3 @@ func (conn SplunkConnection) Login() (SessionKey, error){
         return key, unmarshall_error
 }
 
-// SendMessage sends an informational message to Splunk
-func (conn SplunkConnection) SendMessage(name string, message string, severity MessageSeverity) (string, error){
-        data := make(url.Values)
-        data.Add("name", name)
-        data.Add("value", message)
-        data.Add("severity", string(severity))
-        client := httpClient()
-        response, err := httpPost(client, fmt.Sprintf("%s/services/messages", conn.BaseURL), data, conn)
-        return response, err
-}
-
-func httpClient() *http.Client {
-        tr := &http.Transport{
-                TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-        }
-        client := &http.Client{Transport: tr}
-        return client
-}
-
-func httpPost(client *http.Client, url string, postData url.Values, conn SplunkConnection) (string, error) {
-        request, err := http.NewRequest("POST", url, bytes.NewBufferString(postData.Encode()))
-
-        if conn.sessionKey.Value != "" {
-                request.Header.Add("Authorization", fmt.Sprintf("Splunk %s", conn.sessionKey))
-        } else {
-                request.SetBasicAuth(conn.Username, conn.Password)
-        }
-
-        response, err := client.Do(request)
-
-        if err != nil {
-                return "", err
-        }
-
-        body, _ := ioutil.ReadAll(response.Body)
-        response.Body.Close()
-        return string(body), nil
-}
