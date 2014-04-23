@@ -23,11 +23,10 @@ func (conn SplunkConnection) Login() (SessionKey, error){
         data.Add("username", conn.Username)
         data.Add("password", conn.Password)
         data.Add("output_mode", "json")
-        client := httpClient()
-        response, err := httpPost(client, fmt.Sprintf("%s/services/auth/login", conn.BaseURL), data, conn)
+        response, err := conn.httpPost(fmt.Sprintf("%s/services/auth/login", conn.BaseURL), &data)
 
         if err != nil {
-          return SessionKey{}, err
+                return SessionKey{}, err
         }
 
         bytes := []byte(response)
