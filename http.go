@@ -5,6 +5,7 @@ import (
         "bytes"
         "net/http"
         "net/url"
+        "io"
         "io/ioutil"
         "crypto/tls"
 )
@@ -22,22 +23,22 @@ func httpClient() *http.Client {
 }
 
 func (conn SplunkConnection) httpGet(url string, data *url.Values) (string, error) {
-        client := httpClient()
-        request, err := http.NewRequest("GET", url, bytes.NewBufferString(data.Encode()))
-        conn.addAuthHeader(request)
-        response, err := client.Do(request)
-        if err != nil {
-                return "", err
-        }
-
-        body, _ := ioutil.ReadAll(response.Body)
-        response.Body.Close()
-        return string(body), nil
+        return conn.httpCall(url, "GET", data)
 }
 
 func (conn SplunkConnection) httpPost(url string, data *url.Values) (string, error) {
+        return conn.httpCall(url, "POST", data)
+}
+
+func (conn SplunkConnection) httpCall(url string, method string, data *url.Values) (string, error) {
         client := httpClient()
-        request, err := http.NewRequest("POST", url, bytes.NewBufferString(data.Encode()))
+
+        var payload io.Reader
+        if data != nil {
+          payload = bytes.NewBufferString(data.Encode())
+        }
+
+        request, err := http.NewRequest("POST", url, payload)
         conn.addAuthHeader(request)
         response, err := client.Do(request)
 
