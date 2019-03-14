@@ -19,7 +19,7 @@ Example Usage:
         key, err:= conn.Login()
 
         if err != nil {
-                fmt.Println("Couldn't login to splunk: %s", err)
+                fmt.Println("Couldn't login to splunk: ", err)
         }
 
         fmt.Println("Session key: ", key.Value)
