@@ -1,38 +1,63 @@
 package splunk
 
 import (
-        "fmt"
-        "net/url"
-        "encoding/json"
+	"fmt"
+	"net/url"
+	"encoding/json"
+	"os"
 )
 
 type SplunkConnection struct {
-        Username, Password, BaseURL string
-        sessionKey SessionKey
+	Username, Password, BaseURL string
+	sessionKey                  SessionKey
 }
 
 // SessionKey represents the JSON object returned from the Splunk authentication REST call
 type SessionKey struct {
-        Value string `json:"sessionKey"`
+	Value string `json:"sessionKey"`
 }
 
 // Login connects to the Splunk server and retrieves a session key
-func (conn SplunkConnection) Login() (SessionKey, error){
+func (conn SplunkConnection) Login() (SessionKey, error) {
 
-        data := make(url.Values)
-        data.Add("username", conn.Username)
-        data.Add("password", conn.Password)
-        data.Add("output_mode", "json")
-        response, err := conn.httpPost(fmt.Sprintf("%s/services/auth/login", conn.BaseURL), &data)
+	data := make(url.Values)
+	data.Add("username", conn.Username)
+	data.Add("password", conn.Password)
+	data.Add("output_mode", "json")
+	response, err := conn.httpPost(fmt.Sprintf("%s/services/auth/login", conn.BaseURL), &data)
 
-        if err != nil {
-                return SessionKey{}, err
-        }
+	if err != nil {
+		return SessionKey{}, err
+	}
 
-        bytes := []byte(response)
-        var key SessionKey
-        unmarshall_error := json.Unmarshal(bytes, &key)
-        conn.sessionKey = key
-        return key, unmarshall_error
+	bytes := []byte(response)
+	var key SessionKey
+	unmarshall_error := json.Unmarshal(bytes, &key)
+	conn.sessionKey = key
+	return key, unmarshall_error
 }
 
+func CreateConnectionFromEnvironment()(*SplunkConnection,error) {
+
+	var splunkUsername string
+	var splunkPassword string
+	var splunkUrl string
+
+	if splunkUsername = os.Getenv("SPLUNK_USERNAME"); splunkUsername == "" {
+		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_USERNAME: %v", splunkUsername)
+	}
+
+	if splunkPassword = os.Getenv("SPLUNK_PASSWORD"); splunkPassword == "" {
+		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_PASSWORD: %v", splunkPassword)
+	}
+	
+	if splunkUrl = os.Getenv("SPLUNK_URL"); splunkUrl == "" {
+		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_URL: %v", splunkUrl)
+	}
+	
+	return &SplunkConnection{
+		Username: splunkUsername,
+		Password: splunkPassword,
+		BaseURL: splunkUrl,
+	},nil
+}
