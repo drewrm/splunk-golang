@@ -24,5 +24,6 @@ func TestCanLogin(t *testing.T) {
 	sessionKey, err := connection.Login()
 
 	assert.NotNil(t, sessionKey, "error while login")
+	assert.NotEmpty(t, sessionKey.Value, "error while login")
 
 }
