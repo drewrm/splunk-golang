@@ -1,9 +1,9 @@
 package splunk
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"encoding/json"
 	"os"
 )
 
@@ -18,7 +18,7 @@ type SessionKey struct {
 }
 
 // Login connects to the Splunk server and retrieves a session key
-func (conn SplunkConnection) Login() (SessionKey, error) {
+func (conn *SplunkConnection) Login() (SessionKey, error) {
 
 	data := make(url.Values)
 	data.Add("username", conn.Username)
@@ -33,31 +33,31 @@ func (conn SplunkConnection) Login() (SessionKey, error) {
 	bytes := []byte(response)
 	var key SessionKey
 	unmarshall_error := json.Unmarshal(bytes, &key)
-	conn.sessionKey = key
-	return key, unmarshall_error
+	conn.sessionKey.Value = key.Value
+	return conn.sessionKey, unmarshall_error
 }
 
-func CreateConnectionFromEnvironment()(*SplunkConnection,error) {
+func CreateConnectionFromEnvironment() (*SplunkConnection, error) {
 
 	var splunkUsername string
 	var splunkPassword string
 	var splunkUrl string
 
 	if splunkUsername = os.Getenv("SPLUNK_USERNAME"); splunkUsername == "" {
-		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_USERNAME: %v", splunkUsername)
+		return nil, fmt.Errorf("Invalid value for environment variable SPLUNK_USERNAME: %v", splunkUsername)
 	}
 
 	if splunkPassword = os.Getenv("SPLUNK_PASSWORD"); splunkPassword == "" {
-		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_PASSWORD: %v", splunkPassword)
+		return nil, fmt.Errorf("Invalid value for environment variable SPLUNK_PASSWORD: %v", splunkPassword)
 	}
-	
+
 	if splunkUrl = os.Getenv("SPLUNK_URL"); splunkUrl == "" {
-		return nil,fmt.Errorf("Invalid value for environment variable SPLUNK_URL: %v", splunkUrl)
+		return nil, fmt.Errorf("Invalid value for environment variable SPLUNK_URL: %v", splunkUrl)
 	}
-	
+
 	return &SplunkConnection{
 		Username: splunkUsername,
 		Password: splunkPassword,
-		BaseURL: splunkUrl,
-	},nil
+		BaseURL:  splunkUrl,
+	}, nil
 }
