@@ -2,6 +2,7 @@ package splunk
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -23,7 +24,8 @@ func TestCanLogin(t *testing.T) {
 
 	sessionKey, err := connection.Login()
 
+	require.Nil(t, err, "error while login")
 	assert.NotNil(t, sessionKey, "error while login")
-	assert.NotEmpty(t, sessionKey.Value, "error while login")
+	assert.NotEmpty(t, sessionKey.Value, "session key is empty")
 
 }

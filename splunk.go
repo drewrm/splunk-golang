@@ -2,6 +2,7 @@ package splunk
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -14,7 +15,7 @@ type SplunkConnection struct {
 
 // SessionKey represents the JSON object returned from the Splunk authentication REST call
 type SessionKey struct {
-	Value string `json:"sessionKey"`
+	Value string `json:"sessionKey,omitempty"`
 }
 
 // Login connects to the Splunk server and retrieves a session key
@@ -33,6 +34,11 @@ func (conn *SplunkConnection) Login() (SessionKey, error) {
 	bytes := []byte(response)
 	var key SessionKey
 	unmarshall_error := json.Unmarshal(bytes, &key)
+
+	if key.Value == "" {
+		return SessionKey{}, errors.New(response)
+	}
+
 	conn.sessionKey.Value = key.Value
 	return conn.sessionKey, unmarshall_error
 }
